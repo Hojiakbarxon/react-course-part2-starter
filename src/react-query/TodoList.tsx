@@ -1,5 +1,6 @@
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 
 interface Todo {
   id: number;
@@ -9,21 +10,21 @@ interface Todo {
 }
 
 const TodoList = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
+  const fetchTodo = () =>
     axios
-      .get('https://jsonplaceholder.typicode.com/todos')
-      .then((res) => setTodos(res.data))
-      .catch((error) => setError(error));
-  }, []);
+      .get<Todo[]>("https://jxsonplaceholder.typicode.com/todos")
+      .then((res) => res.data);
 
-  if (error) return <p>{error}</p>;
+  const { data: todos, error } = useQuery<Todo[], Error>({
+    queryKey: ["todos"],
+    queryFn: fetchTodo,
+  });
+
+  if (error) return <p>{error.message}</p>;
 
   return (
     <ul className="list-group">
-      {todos.map((todo) => (
+      {todos?.map((todo) => (
         <li key={todo.id} className="list-group-item">
           {todo.title}
         </li>
@@ -33,3 +34,5 @@ const TodoList = () => {
 };
 
 export default TodoList;
+
+// Benefits - auto retry,  automatic refresh after a period of time, caching - first time we fetch the data it is stored in the cache, next time we need the same piece of data and it is still in cache we do not have to go to server
